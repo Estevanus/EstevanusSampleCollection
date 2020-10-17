@@ -4,7 +4,7 @@ import var
 import math
 import aud
 
-soundFile = var.lok + "faded.wav"
+soundFile = var.lok + "test.wav"
 
 previewSize = 14
 
