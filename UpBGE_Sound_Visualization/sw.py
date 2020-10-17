@@ -185,7 +185,6 @@ def pp(cont):
 			aktif = False
 			
 	if aktif:
-		print("status music is " + str(var.handle.status))
 		if var.isStart:
 			var.handle.pause()
 			var.isStart = False
