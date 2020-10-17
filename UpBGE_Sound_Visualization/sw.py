@@ -4,7 +4,7 @@ import var
 import math
 import aud
 
-soundFile = var.lok + "test2.wav"
+soundFile = var.lok + "faded.wav"
 
 previewSize = 14
 
@@ -32,6 +32,7 @@ def init(cont):
 	device = aud.Device()
 	factory = aud.Sound(soundFile)
 	handle = device.play(factory)
+	var.isStart = True
 	var.handle = handle
 	
 	
@@ -108,70 +109,90 @@ def runV3(cont):
 	waktu = var.handle.position
 	own['waktu'] = waktu
 	
-	curFrame = int(waktu / var.totalTime * var.totalFrames)
 	
-	panjangPita = int(math.fabs(curFrame - var.lastFrame +1))
-	#frame = var.w.readframes(735)
-	frame = var.w.readframes(panjangPita)
-	
-	b = frame[-2:]
-	own['framePerTick'] = panjangPita
-	hn = 0
-	if var.isPlus == 1:
-		for i in range(int(len(frame) / 2)):
-			ke = (i+1)*2
-			curb = frame[ke - 2 :ke]
-			nilai = int.from_bytes(b, 'little')
-			
-			tn = nilai / (waveInt)
-			if tn > 0.5:
-				#hn = 1 - hn
-				tn = tn -1
-				var.isPlus = -1
-			
-			tn = math.fabs(tn)
-			
-			if tn > hn:
-				hn = tn
-				
-			if tn * 2 > own['biggestValue']:
-				own['biggestValue'] = tn * 2
-	else:
-		for i in range(int(len(frame) / 2)):
-			ke = (i+1)*2
-			curb = frame[ke - 2 :ke]
-			nilai = int.from_bytes(b, 'little')
-			
-			tn = nilai / (waveInt)
-			if tn > 0.5:
-				#hn = 1 - hn
-				tn = tn -1
-			else:
-				var.isPlus = 1
-			
-			
-			if tn < hn:
-				hn = tn
-				
-			if math.fabs(tn) * 2 > own['biggestValue']:
-				own['biggestValue'] = math.fabs(tn) * 2
+	if var.isStart:
+		curFrame = int(waktu / var.totalTime * var.totalFrames)
 		
+		panjangPita = int(math.fabs(curFrame - var.lastFrame +1))
+		#frame = var.w.readframes(735)
+		frame = var.w.readframes(panjangPita)
+		
+		b = frame[-2:]
+		own['framePerTick'] = panjangPita
+		hn = 0
+		if var.isPlus == 1:
+			for i in range(int(len(frame) / 2)):
+				ke = (i+1)*2
+				curb = frame[ke - 2 :ke]
+				nilai = int.from_bytes(b, 'little')
+				
+				tn = nilai / (waveInt)
+				if tn > 0.5:
+					#hn = 1 - hn
+					tn = tn -1
+					var.isPlus = -1
+				
+				tn = math.fabs(tn)
+				
+				if tn > hn:
+					hn = tn
+					
+				if tn * 2 > own['biggestValue']:
+					own['biggestValue'] = tn * 2
+		else:
+			for i in range(int(len(frame) / 2)):
+				ke = (i+1)*2
+				curb = frame[ke - 2 :ke]
+				nilai = int.from_bytes(b, 'little')
+				
+				tn = nilai / (waveInt)
+				if tn > 0.5:
+					#hn = 1 - hn
+					tn = tn -1
+				else:
+					var.isPlus = 1
+				
+				
+				if tn < hn:
+					hn = tn
+					
+				if math.fabs(tn) * 2 > own['biggestValue']:
+					own['biggestValue'] = math.fabs(tn) * 2
+			
+		
+		n = hn * previewSize
+		
+		own['n'] = n
+		batas = -14.8
+		if own.worldPosition.x > batas:
+			own.worldPosition = [own.worldPosition.x - 0.1 , n + var.startYPos , 0]
+		else:
+			own.worldPosition = [batas , n + var.startYPos , 0]
+		
+		keyboard = bge.logic.keyboard
+		#if cont.sensors['screenshot'].getKeyStatus == True:
+		if keyboard.events[bge.events.TKEY] == bge.logic.KX_INPUT_JUST_ACTIVATED:
+			bge.render.makeScreenshot(var.lok + "scr/cool-#")
+		
+		var.lastFrame = curFrame
 	
-	n = hn * previewSize
+def pp(cont):
+	own = cont.owner
 	
-	own['n'] = n
-	batas = -14.8
-	if own.worldPosition.x > batas:
-		own.worldPosition = [own.worldPosition.x - 0.1 , n + var.startYPos , 0]
-	else:
-		own.worldPosition = [batas , n + var.startYPos , 0]
-	
-	keyboard = bge.logic.keyboard
-	#if cont.sensors['screenshot'].getKeyStatus == True:
-	if keyboard.events[bge.events.TKEY] == bge.logic.KX_INPUT_JUST_ACTIVATED:
-		bge.render.makeScreenshot(var.lok + "scr/cool-#")
-	
-	var.lastFrame = curFrame
+	aktif = True
+	for i in cont.sensors:
+		if i.positive == False:
+			aktif = False
+			
+	if aktif:
+		print("status music is " + str(var.handle.status))
+		if var.isStart:
+			var.handle.pause()
+			var.isStart = False
+		else:
+			var.handle.resume()
+			var.isStart = True
+		
 	
 	
 	
