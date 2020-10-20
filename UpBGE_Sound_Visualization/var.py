@@ -15,3 +15,5 @@ lastN = 0
 startYPos = 0
 
 isPlus = 1
+
+frames = []

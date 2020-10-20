@@ -3,8 +3,9 @@ import wave
 import var
 import math
 import aud
+import GameObject
 
-soundFile = var.lok + "test.wav"
+soundFile = var.lok + "test3.wav"
 
 previewSize = 14
 
@@ -117,14 +118,13 @@ def runV3(cont):
 		#frame = var.w.readframes(735)
 		frame = var.w.readframes(panjangPita)
 		
-		b = frame[-2:]
 		own['framePerTick'] = panjangPita
 		hn = 0
 		if var.isPlus == 1:
 			for i in range(int(len(frame) / 2)):
 				ke = (i+1)*2
 				curb = frame[ke - 2 :ke]
-				nilai = int.from_bytes(b, 'little')
+				nilai = int.from_bytes(curb, 'little')
 				
 				tn = nilai / (waveInt)
 				if tn > 0.5:
@@ -143,7 +143,7 @@ def runV3(cont):
 			for i in range(int(len(frame) / 2)):
 				ke = (i+1)*2
 				curb = frame[ke - 2 :ke]
-				nilai = int.from_bytes(b, 'little')
+				nilai = int.from_bytes(curb, 'little')
 				
 				tn = nilai / (waveInt)
 				if tn > 0.5:
@@ -191,7 +191,57 @@ def pp(cont):
 		else:
 			var.handle.resume()
 			var.isStart = True
+	
+def addSpect(cont):
+	own = cont.owner
+	
+	added = GameObject.KX_SpectObject(own.scene.addObject("spectrum"))
+	added.worldPosition = own.worldPosition
+	added.hertz = 2936
+	added.setup()
+	own.worldPosition.x -= 8
+	added = GameObject.KX_SpectObject(own.scene.addObject("spectrum"))
+	added.worldPosition = own.worldPosition
+	added.hertz = 632
+	added.setup()
+	own.worldPosition.x -= 8
+	added = GameObject.KX_SpectObject(own.scene.addObject("spectrum"))
+	added.worldPosition = own.worldPosition
+	added.hertz = 60
+	added.setup()
+	own.worldPosition.x -= 8
+	
+	cont.activate(cont.actuators['s3'])
+	
+def runObject(cont):
+	#cont.owner.run()
+	cont.owner.runv1()
+	
+def runV4(cont):
+	own = cont.owner
+	waktu = var.handle.position
+	own['waktu'] = waktu
+	
+	
+	if var.isStart:
+		curFrame = int(waktu / var.totalTime * var.totalFrames)
 		
-	
-	
+		panjangPita = int(math.fabs(curFrame - var.lastFrame +1))
+		own['framePerTick'] = panjangPita
+		
+		frame = var.w.readframes(panjangPita)
+		
+		for i in range(int(len(frame) / 2)):
+			ke = (i+1)*2
+			curb = frame[ke - 2 :ke]
+			nilai = int.from_bytes(curb, 'little')
+			
+			tn = nilai / (waveInt)
+			if tn > 0.5:
+				#hn = 1 - hn
+				tn = tn -1
+			var.frames.append(tn)
+		
+		
+		var.lastFrame = curFrame
 	
