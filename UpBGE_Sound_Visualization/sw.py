@@ -5,7 +5,7 @@ import math
 import aud
 import GameObject
 
-soundFile = var.lok + "test3.wav"
+soundFile = var.lok + "envious.wav"
 
 previewSize = 14
 
@@ -195,6 +195,7 @@ def pp(cont):
 def addSpect(cont):
 	own = cont.owner
 	
+	'''
 	added = GameObject.KX_SpectObject(own.scene.addObject("spectrum"))
 	added.worldPosition = own.worldPosition
 	added.hertz = 2936
@@ -210,12 +211,24 @@ def addSpect(cont):
 	added.hertz = 60
 	added.setup()
 	own.worldPosition.x -= 8
+	'''
+	
+	qzer = [2936, 1500, 632, 100, 40]
+	
+	for i in qzer:
+		added = GameObject.KX_SpectObject(own.scene.addObject("spectrum"))
+		added.worldPosition = own.worldPosition
+		added.hertz = i
+		added.setup()
+		own.worldPosition.x -= 6
 	
 	cont.activate(cont.actuators['s3'])
 	
 def runObject(cont):
 	#cont.owner.run()
-	cont.owner.runv1()
+	#cont.owner.runv1()
+	#cont.owner.runv2()
+	cont.owner.runv3()
 	
 def runV4(cont):
 	own = cont.owner
@@ -242,6 +255,91 @@ def runV4(cont):
 				tn = tn -1
 			var.frames.append(tn)
 		
+		
+		var.lastFrame = curFrame
+
+	
+	
+def runV3_1(cont):
+	own = cont.owner
+	waktu = var.handle.position
+	own['waktu'] = waktu
+	
+	
+	if var.isStart:
+		curFrame = int(waktu / var.totalTime * var.totalFrames)
+		
+		panjangPita = int(math.fabs(curFrame - var.lastFrame +1))
+		#frame = var.w.readframes(735)
+		frame = var.w.readframes(panjangPita)
+		
+		own['framePerTick'] = panjangPita
+		hn = 0
+		if var.isPlus == 1:
+			for i in range(int(len(frame) / 2)):
+				ke = (i+1)*2
+				curb = frame[ke - 2 :ke]
+				nilai = int.from_bytes(curb, 'little')
+				
+				tn = nilai / (waveInt)
+				if tn > 0.5:
+					#hn = 1 - hn
+					tn = tn -1
+					var.isPlus = -1
+				var.frames.append(tn)
+				
+				tn = math.fabs(tn)
+				
+				if tn > hn:
+					hn = tn
+					
+				if tn * 2 > own['biggestValue']:
+					own['biggestValue'] = tn * 2
+		else:
+			for i in range(int(len(frame) / 2)):
+				ke = (i+1)*2
+				curb = frame[ke - 2 :ke]
+				nilai = int.from_bytes(curb, 'little')
+				
+				tn = nilai / (waveInt)
+				if tn > 0.5:
+					#hn = 1 - hn
+					tn = tn -1
+				else:
+					var.isPlus = 1
+				
+				var.frames.append(tn)
+				
+				
+				if tn < hn:
+					hn = tn
+					
+				if math.fabs(tn) * 2 > own['biggestValue']:
+					own['biggestValue'] = math.fabs(tn) * 2
+			
+		
+		added = own.scene.addObject("bullet", own, 300)
+		fp = len(var.frames)
+		clr = 0
+		bpf = int(44100 / 40)
+		if fp > bpf:
+			frames = var.frames[-bpf:]
+			clr = GameObject.spectudv0(frames, bpf / 2)
+			own['cek'] = clr
+		added.color = [1, 0, clr, 1]
+		n = hn * previewSize
+		
+		own['n'] = n
+		batas = -14.8
+		if own.worldPosition.x > batas:
+			own.worldPosition = [own.worldPosition.x - 0.1 , n + var.startYPos , 0]
+		else:
+			own.worldPosition = [batas , n + var.startYPos , 0]
+		
+		keyboard = bge.logic.keyboard
+		#if cont.sensors['screenshot'].getKeyStatus == True:
+		if keyboard.events[bge.events.TKEY] == bge.logic.KX_INPUT_JUST_ACTIVATED:
+			bge.render.makeScreenshot(var.lok + "scr/cool-#")
 		
 		var.lastFrame = curFrame
 	
